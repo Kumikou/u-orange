@@ -1,0 +1,77 @@
+server:
+  port: 9922
+
+spring:
+  application:
+    name: feedback-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yml
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://kumi.uorange.com:3369/feedback-service?useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&verifyServerCertificate=false&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: DatebookHikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+  redis:
+    host: kumi.uorange.com
+    password: .justforfun.
+    database: 1
+    port: 6369
+
+  aop:
+    proxy-target-class: true
+  #  jackson:
+  #    serialization:
+  #      write-dates-as-timestamps: true
+  profiles:
+    active: dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+security:
+  oauth2:
+    client:
+      client-id: uorange
+      client-secret: secret
+      access-token-uri: http://localhost:9999/oauth/token
+      user-authorization-uri: http://localhost:9999/oauth/authorize
+    resource:
+      token-info-uri: http://localhost:9999/oauth/check_token
+
+mybatis-plus:
+  global-config:
+    #    refresh-mapper: true
+    #    sql-parser-cache: true
+    db-config:
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+  typeEnumsPackage: cn.uorange.feedbackservice.repository.mapper.**
+  mapper-locations: classpath*:/**/xml/*Mapper.xml
+
+# 自定义配置
+uorange:
+  swagger:
+    title: 反馈模块API文档
+    author: Kumikou
+    email: zjared@163.com
+    version: 1.0.0
+#    description:

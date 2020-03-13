@@ -1,0 +1,100 @@
+server:
+  port: 9925
+
+spring:
+  application:
+    name: goods-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yml
+    stream:
+      bindings:
+        browsedGoodsOutput: {destination: record-browsed-goods , content-type: application/json}
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://kumi.uorange.com:3369/goods-service?useUnicode=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&verifyServerCertificate=false&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: DatebookHikariCP
+      max-lifetime: 0
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+  redis:
+    host: kumi.uorange.com
+    password: .justforfun.
+    database: 1
+    port: 6369
+  rabbitmq:
+    host: kumi.uorange.com
+    port: 5679
+    username: guest
+    password: guest
+
+  aop:
+    proxy-target-class: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: true
+  profiles:
+    active: dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+security:
+  oauth2:
+    client:
+      client-id: uorange
+      client-secret: secret
+      access-token-uri: http://localhost:9999/oauth/token
+      user-authorization-uri: http://localhost:9999/oauth/authorize
+    resource:
+      token-info-uri: http://localhost:9999/oauth/check_token
+
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+  typeEnumsPackage: cn.uorange.goodservice.repository.mapper.**
+  mapper-locations: classpath*:/**/xml/*Mapper.xml
+
+# 自定义配置
+uorange:
+  swagger:
+    title: 商品模块API文档
+    author: Kumikou
+    email: zjared@163.com
+    version: 1.0.0
+#    description:
+
+# 避免nacos不断打印心跳日志
+logging:
+  level:
+    com.alibaba.nacos.client.naming: warn
+
+# 防止超时报错
+ribbon:
+  ReadTimeout: 30000
+  ConnectTimeout: 30000
+
+#feign:
+#  client:
+#    config:
+#      default:
+#        connectTimeout: 20000
+#        readTimeout: 20000
+#        loggerLevel: basic

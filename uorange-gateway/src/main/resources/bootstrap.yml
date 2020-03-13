@@ -1,0 +1,100 @@
+server:
+  port: 80
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yml
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      x-forwarded:
+        prefix-append: false
+      routes:
+        - id: user
+          uri: lb://user-service
+          order: 1
+          predicates:
+            - Path=/user/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: feedback
+          uri: lb://feedback-service
+          order: 9
+          predicates:
+            - Path=/feedback/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: assess
+          uri: lb://assess-service
+          order: 6
+          predicates:
+            - Path=/assess/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: auction
+          uri: lb://auction-service
+          order: 5
+          predicates:
+            - Path=/auction/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: goods
+          uri: lb://goods-service
+          order: 4
+          predicates:
+            - Path=/goods/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: info
+          uri: lb://info-service
+          order: 2
+          predicates:
+            - Path=/info/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: record
+          uri: lb://record-service
+          order: 8
+          predicates:
+            - Path=/record/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: order
+          uri: lb://order-service
+          order: 7
+          predicates:
+            - Path=/order/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
+        # ----------------------------
+        - id: oauth
+          uri: lb://oauth2-service
+          order: 3
+          predicates:
+            - Path=/oauth/**
+          filters:
+            - SwaggerHeaderFilter
+            - StripPrefix=1
