@@ -73,7 +73,7 @@ public class CollectGoodsServiceImpl extends ServiceImpl<CollectGoodsMapper, Col
         boolean result = this.remove(new QueryWrapper<CollectGoods>()
                 .eq(CollectGoods.USER_ID, userId)
                 .eq(CollectGoods.GOODS_ID, goodsId));
-        return Result.error(result);
+        return Result.success(result);
     }
 
     @Override

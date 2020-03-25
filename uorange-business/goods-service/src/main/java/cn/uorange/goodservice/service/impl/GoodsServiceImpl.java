@@ -108,7 +108,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
     @Override
     public Result listGoods(Integer categoryId, Integer page, Integer size) {
-        IPage goods = this.page(new Page<>(page, size), new QueryWrapper<Goods>().eq(Goods.CATEGORY_ID, categoryId).orderByDesc(Goods.CREATE_TIME));
+        IPage goods = this.page(new Page<>(page, size), new QueryWrapper<Goods>().eq(Goods.CATEGORY_ID, categoryId).eq(Goods.STATUS,0).orderByDesc(Goods.CREATE_TIME));
         return Result.success(goods);
     }
 

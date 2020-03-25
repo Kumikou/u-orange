@@ -3,6 +3,7 @@ package cn.uorange.infoservice.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.uorange.common.utils.Result;
 import cn.uorange.infoservice.command.CreateAddressCommand;
+import cn.uorange.infoservice.vo.AddressChVO;
 import cn.uorange.infoservice.vo.AddressVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,9 @@ import cn.uorange.infoservice.service.IAddressService;
 @Service
 @Slf4j
 public class AddressServiceImpl extends ServiceImpl<AddressMapper, Address> implements IAddressService {
+
+    @Resource
+    AddressMapper addressMapper;
 
     @Override
     public Result createAddress(Long userId, CreateAddressCommand command) {
@@ -45,6 +49,13 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, Address> impl
         this.updateById(address);
         log.info("address数据更新成功,数据内容:{}", address);
         return Result.success();
+    }
+
+    @Override
+    public Result listAddressCh(Long id) {
+        List<AddressChVO> addressList = addressMapper.listAddressCh(id);
+        log.info("获取地址列表,用户:{}", id);
+        return Result.success(addressList);
     }
 
     private void isExisted(Long id) {

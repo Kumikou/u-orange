@@ -21,4 +21,6 @@ public interface IUserInfoService extends IService<UserInfo> {
     Result listUserInfos(Integer page, Integer size);
 
     Result changeUserStatus(Long userId, Integer status);
+
+    Result getUsernameById(String userId);
 }

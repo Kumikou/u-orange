@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "订单表")
 @Data
 @Accessors(chain = true)
-@TableName(value = "order")
+@TableName(value = "order_brief")
 public class Order implements Serializable {
     /**
      * 自增id

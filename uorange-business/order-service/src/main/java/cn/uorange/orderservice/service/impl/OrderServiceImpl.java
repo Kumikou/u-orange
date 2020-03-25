@@ -2,6 +2,7 @@ package cn.uorange.orderservice.service.impl;
 
 import cn.uorange.common.utils.Result;
 import cn.uorange.orderservice.command.SubmitOrderAddCommand;
+import cn.uorange.orderservice.command.SubmitOrderCommand;
 import cn.uorange.orderservice.command.SubmitOrderGoodsCommand;
 import cn.uorange.orderservice.enums.OrderStatus;
 import cn.uorange.orderservice.feign.GoodsFeign;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -50,16 +52,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * 5.生成订单配送信息
      * </P>
      *
-     * @param userId       用户id
-     * @param goodsCommand 商品信息
-     * @param addCommand   地址信息
+     * @param userId  用户id
+     * @param command 商品信息
      * @return 结果
      */
     @Override
     @Transactional
-    public Result submit(Long userId, SubmitOrderGoodsCommand goodsCommand, SubmitOrderAddCommand addCommand) {
+    public Result submit(Long userId, SubmitOrderCommand command) {
         // 获取商品信息
-        Result<JSONObject> res = goodsFeign.queryGoodsById(goodsCommand.getGoodsId());
+        Result<JSONObject> res = goodsFeign.queryGoodsById(command.getGoodsId());
         JSONObject goodsJson = res.getData();
         if (Objects.isNull(goodsJson))
             return Result.errorMsg("服务繁忙,请稍后重试");
@@ -69,14 +70,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             return Result.errorMsg("该商品已下架或删除");
 
         // 检查价格
-        if (goodsCommand.getMoney().compareTo(goodsJson.getBigDecimal("price")) != 0)
+        if (command.getMoney().compareTo(goodsJson.getBigDecimal("price")) != 0)
             return Result.errorMsg("价格出错");
 
         // 生成订单信息
-        Order order = goodsCommand.toOrder();
+        Order order = new Order();
         order.setUserId(userId)
-                .setSellerId(goodsCommand.getSellerId())
-                .setMoney(goodsCommand.getMoney())
+                .setGoodsId(command.getGoodsId())
+                .setTitle(command.getTitle())
+                .setPic(command.getPic())
+                .setMoney(command.getMoney())
+                .setSellerId(command.getSellerId())
+                .setMoney(command.getMoney())
                 .setOrderNo(generatNo());
         this.save(order);
         log.info("订单数据创建成功,数据内容:{}", order);
@@ -85,24 +90,80 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         Long orderId = order.getOrderId();
 
         // 生成订单详情信息
-        OrderDetail detail = goodsCommand.toOrderDetail();
-        detail.setUserId(userId).setOrderId(orderId);
+        OrderDetail detail = new OrderDetail();
+        detail.setGoodsId(command.getGoodsId())
+                .setTitle(command.getTitle())
+                .setPic(command.getPic())
+                .setMoney(command.getMoney())
+                .setSellerId(command.getSellerId())
+                .setUserId(userId).setOrderId(orderId);
         detailService.save(detail);
         log.info("订单详情数据创建成功,数据内容:{}", detail);
 
         // 生成订单配送信息
-        OrderDelivery delivery = addCommand.toObj();
-        delivery.setOrderId(orderId);
+        OrderDelivery delivery = new OrderDelivery();
+        delivery.setOrderId(orderId)
+                .setName(command.getName())
+                .setPhone(command.getPhone())
+                .setAddressDetail(command.getAddressDetail())
+                .setStreet(command.getStreet())
+                .setArea(command.getArea())
+                .setCity(command.getCity())
+                .setProvince(command.getProvince());
         deliveryService.save(delivery);
         log.info("订单配送数据创建成功,数据内容:{}", delivery);
 
-        return Result.successMsg("订单提交成功!");
+        return Result.success("订单提交成功!", order.getOrderNo());
     }
+
+//    @Override
+//    @Transactional
+//    public Result submit(Long userId, SubmitOrderGoodsCommand goodsCommand, SubmitOrderAddCommand addCommand) {
+//        // 获取商品信息
+//        Result<JSONObject> res = goodsFeign.queryGoodsById(goodsCommand.getGoodsId());
+//        JSONObject goodsJson = res.getData();
+//        if (Objects.isNull(goodsJson))
+//            return Result.errorMsg("服务繁忙,请稍后重试");
+//
+//        // 检查商品状态
+//        if (goodsJson.getInteger("status") != 0)
+//            return Result.errorMsg("该商品已下架或删除");
+//
+//        // 检查价格
+//        if (goodsCommand.getMoney().compareTo(goodsJson.getBigDecimal("price")) != 0)
+//            return Result.errorMsg("价格出错");
+//
+//        // 生成订单信息
+//        Order order = goodsCommand.toOrder();
+//        order.setUserId(userId)
+//                .setSellerId(goodsCommand.getSellerId())
+//                .setMoney(goodsCommand.getMoney())
+//                .setOrderNo(generatNo());
+//        this.save(order);
+//        log.info("订单数据创建成功,数据内容:{}", order);
+//
+//        // 获取订单数据主键
+//        Long orderId = order.getOrderId();
+//
+//        // 生成订单详情信息
+//        OrderDetail detail = goodsCommand.toOrderDetail();
+//        detail.setUserId(userId).setOrderId(orderId);
+//        detailService.save(detail);
+//        log.info("订单详情数据创建成功,数据内容:{}", detail);
+//
+//        // 生成订单配送信息
+//        OrderDelivery delivery = addCommand.toObj();
+//        delivery.setOrderId(orderId);
+//        deliveryService.save(delivery);
+//        log.info("订单配送数据创建成功,数据内容:{}", delivery);
+//
+//        return Result.successMsg("订单提交成功!");
+//    }
 
     private String generatNo() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         String dateStr = formatter.format(LocalDateTime.now());
-        return dateStr + new Random().nextInt(900000) + 100000;
+        return dateStr + new Random().nextInt(9);
     }
 
     @Override
@@ -128,6 +189,28 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         IPage orderPage = this.page(new Page<>(page, size), new QueryWrapper<Order>().eq(Order.SELLER_ID, userId));
         log.info("订单列表数据查询成功,卖家方用户id:{}", userId);
         return Result.success(orderPage);
+    }
+
+    @Override
+    public String updataOrder(Map<String, String> params) {
+        Order order = this.getOne(new QueryWrapper<Order>().eq(Order.ORDER_NO, params.get("out_trade_no")));
+        if (order.getStatus() == 0) {
+            order.setAlipayNo(params.get("trade_no")).setStatus(1);
+            this.updateById(order);
+            log.info("订单信息更新成功,订单信息:{}",order);
+            detailService.updateOrderDetatil(order.getOrderId(), params);
+            return "订单支付成功";
+        } else {
+            return "该订单已支付或取消";
+        }
+    }
+
+    @Override
+    public Result getDetail(long id, Long orderNo) {
+        Order order = this.getOne(new QueryWrapper<Order>().eq(Order.USER_ID, id).eq(Order.ORDER_NO, orderNo));
+        if (Objects.isNull(order))
+            return Result.errorMsg("该订单信息不存在");
+        return Result.success(order);
     }
 }
 

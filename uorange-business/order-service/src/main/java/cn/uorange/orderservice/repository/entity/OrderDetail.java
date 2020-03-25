@@ -149,15 +149,15 @@ public class OrderDetail implements Serializable {
 
     public static final String DELIVER_TIME = "deliver_time";
 
-    public static final String COL_DEAL_TIME = "deal_time";
+    public static final String DEAL_TIME = "deal_time";
 
-    public static final String COL_USER_ID = "user_id";
+    public static final String USER_ID = "user_id";
 
-    public static final String COL_ORDER_ID = "order_id";
+    public static final String ORDER_ID = "order_id";
 
-    public static final String COL_CREATE_TIME = "create_time";
+    public static final String CREATE_TIME = "create_time";
 
-    public static final String COL_MODIFY_TIME = "modify_time";
+    public static final String MODIFY_TIME = "modify_time";
 
-    public static final String COL_DELETED = "deleted";
+    public static final String DELETED = "deleted";
 }

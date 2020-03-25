@@ -74,7 +74,7 @@ public class Address implements Serializable {
      */
     @TableField(value = "phone")
     @ApiModelProperty(value="手机号")
-    private Integer phone;
+    private Long phone;
 
     /**
      * 标签 1:家 2:公司 3:学校

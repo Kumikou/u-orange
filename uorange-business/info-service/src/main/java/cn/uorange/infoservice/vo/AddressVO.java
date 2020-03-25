@@ -27,7 +27,7 @@ public class AddressVO {
 
     private String name;
 
-    private Integer phone;
+    private Long phone;
 
     private Byte tag;
 

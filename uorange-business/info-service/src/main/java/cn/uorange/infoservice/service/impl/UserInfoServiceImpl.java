@@ -91,9 +91,17 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         return Result.success();
     }
 
+    @Override
+    public Result getUsernameById(String userId) {
+        UserInfo userInfo = this.getById(userId);
+        return Result.success(userInfo.getUsername());
+    }
+
     private void isExisted(Long userId) {
         int count = this.count(new QueryWrapper<UserInfo>().eq(UserInfo.USER_ID, userId));
         Assert.isTrue(retBool(count), String.format("userId:%d用户信息不存在", userId));
         log.debug("userId:{}用户信息存在", userId);
     }
+
+
 }

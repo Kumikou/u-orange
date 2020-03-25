@@ -49,6 +49,12 @@ public class ComnInfoController {
         return infoService.getInfoByUsername(username);
     }
 
+    @ApiOperation("根据用户id获取用户昵称")
+    @GetMapping("name/id/{userId}")
+    public Result getUsernameById(@ApiParam @PathVariable String userId) {
+        return infoService.getUsernameById(userId);
+    }
+
     @ApiOperation("修改用户信息")
     @PutMapping
     @CacheEvict(value = "getUserInfo", key = "#user.id")
@@ -99,6 +105,12 @@ public class ComnInfoController {
     @GetMapping("address/list")
     public Result listAddress(@LoginUser SysUser user) {
         return Result.success(addressService.list(new QueryWrapper<Address>().eq(Address.USER_ID, user.getId())));
+    }
+
+    @ApiOperation("获取地址列表")
+    @GetMapping("address/list/ch")
+    public Result listAddressCh(@LoginUser SysUser user) {
+        return addressService.listAddressCh(user.getId());
     }
 
 

@@ -12,4 +12,6 @@ public interface IAddressService extends IService<Address>{
     Result getAddress(Long id);
 
     Result changeAddress(Long id, CreateAddressCommand command);
+
+    Result listAddressCh(Long id);
 }

@@ -1,18 +1,29 @@
 package cn.uorange.orderservice.controller;
 
+import cn.uorange.common.utils.Result;
+import cn.uorange.orderservice.repository.entity.Order;
+import cn.uorange.orderservice.service.IOrderService;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * <p>
@@ -33,9 +44,9 @@ public class AlipayController {
     //支付宝公匙
     public static String ALIPAY_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiPf270WilIKOTY1Shnr9J4+VRSuRW8JnWdW1Bk5j1hytqq5c/J9TsNdOOsfh5wsm/dcE5QIacpn9fOdt4O+YzXF6T0NrtnxiOuO8NHsubHLSZAQ4Gg3ZjxeGOoE5JvdkBjBW15+3le05rXkXY7jwY5j0Y1mbaZwQTTIFCm1fXoWmasTMIOUjgiI46vkXWJXM6FaenheWhhfGFPCN74SK5vu16QIMPBvkyr2Rh9R7CmebAU1YjHl44V1qLhL19fvkvHwRgv0oOLhd5bBHdKnLTTuUYMKp4Or5NPtTJSqsj/3yDhIFmbIhL/MnbsYQAdzjl77TkEFArMEXOXeeZ+k5iQIDAQAB";
     //服务器异步通知路径
-    public static String NOTIFY_URL = "http://127.0.01/alipay/alipayNotifyNotice.action";
+    public static String NOTIFY_URL = "http://127.0.01/order/alipay/alipayNotifyNotice.action";
     //服务器同步通知路径
-    public static String RETURN_URL = "http://127.0.0.1/alipay/alipayReturnNotice.action";
+    public static String RETURN_URL = "http://127.0.0.1/order/alipay/alipayReturnNotice.action";
     //公匙类型/签名类型
     public static String SIGN_TYPE = "RSA2";
     //编码格式
@@ -45,25 +56,26 @@ public class AlipayController {
 
     public static String FORMAT = "JSON";
 
+    @Resource
+    IOrderService orderService;
 
     @ApiOperation("支付宝测试")
     @GetMapping("test")
-    public void doPost(HttpServletRequest httpRequest,
-                       HttpServletResponse httpResponse) throws ServletException, IOException {
+    public void doPost(@ApiParam("订单号") @RequestParam String orderNo,
+                       HttpServletResponse httpResponse) throws IOException {
+
+        Order order = orderService.getOne(new QueryWrapper<Order>().eq(Order.ORDER_NO,orderNo));
+
         AlipayClient alipayClient = new DefaultAlipayClient(GATEWAY_URL, APP_ID, APP_PRIVATE_KEY, FORMAT, CHARSET, ALIPAY_PUBLIC_KEY, SIGN_TYPE); //获得初始化的AlipayClient
         AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();//创建API对应的request
         alipayRequest.setReturnUrl(RETURN_URL);
         alipayRequest.setNotifyUrl(NOTIFY_URL);//在公共参数中设置回跳和通知地址
         alipayRequest.setBizContent("{" +
-                "    \"out_trade_no\":\"20150320010101001\"," +
+                "    \"out_trade_no\":\"" + order.getOrderNo() + "\"," +
                 "    \"product_code\":\"FAST_INSTANT_TRADE_PAY\"," +
-                "    \"total_amount\":88.88," +
-                "    \"subject\":\"Iphone6 16G\"," +
-                "    \"body\":\"Iphone6 16G\"," +
-                "    \"passback_params\":\"merchantBizType%3d3C%26merchantBizNo%3d2016010101111\"," +
-                "    \"extend_params\":{" +
-                "    \"sys_service_provider_id\":\"2088511833207846\"" +
-                "    }"+
+                "    \"total_amount\":" + order.getMoney() +"," +
+                "    \"subject\":\"" + order.getTitle() +"\"," +
+                "    \"body\":\"" + order.getTitle() +"\"" +
                 "  }");//填充业务参数
         String form = "";
         try {
@@ -79,7 +91,28 @@ public class AlipayController {
 
 
     @GetMapping("alipayReturnNotice.action")
-    public void doPost() {
+    public String doPost(HttpServletRequest request) throws AlipayApiException {
+        // 获取支付宝GET过来反馈信息
+        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String[]> requestParams = request.getParameterMap();
+        for (Iterator<String> iter = requestParams.keySet().iterator(); iter.hasNext();) {
+            String name = iter.next();
+            String[] values = requestParams.get(name);
+            String valueStr = "";
+            for (int i = 0; i < values.length; i++) {
+                valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
+            }
+//            valueStr = new String(valueStr.getBytes("utf-8"), "utf-8");
+            params.put(name, valueStr);
+        }
+        System.out.println(params);
+
+        boolean signVerified = AlipaySignature.rsaCheckV1(params,ALIPAY_PUBLIC_KEY,CHARSET,SIGN_TYPE);
+
+        if (signVerified)
+          return orderService.updataOrder(params);
+        else
+            return "订单支付失败";
     }
 
 }

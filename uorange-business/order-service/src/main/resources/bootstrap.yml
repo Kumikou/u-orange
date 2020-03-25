@@ -1,6 +1,10 @@
 server:
   port: 9928
 
+ribbon:
+  ReadTimeout: 30000
+  ConnectTimeout: 30000
+
 spring:
   application:
     name: order-service

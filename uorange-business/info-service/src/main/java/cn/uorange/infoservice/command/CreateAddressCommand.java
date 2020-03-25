@@ -46,7 +46,7 @@ public class CreateAddressCommand {
 
     @ApiModelProperty(value = "手机号")
     @NotNull(message = "手机号不能为空")
-    private Integer phone;
+    private Long phone;
 
     @ApiModelProperty(value = "标签 1:家 2:公司 3:学校")
     private Byte tag;

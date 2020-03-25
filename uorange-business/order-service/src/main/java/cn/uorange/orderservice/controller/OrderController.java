@@ -3,12 +3,9 @@ package cn.uorange.orderservice.controller;
 import cn.uorange.common.utils.Result;
 import cn.uorange.common.webmvc.LoginUser;
 import cn.uorange.common.webmvc.SysUser;
-import cn.uorange.orderservice.command.SubmitOrderAddCommand;
-import cn.uorange.orderservice.command.SubmitOrderGoodsCommand;
+import cn.uorange.orderservice.command.SubmitOrderCommand;
 import cn.uorange.orderservice.service.IOrderService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,12 +23,19 @@ public class OrderController {
     @Resource
     IOrderService orderService;
 
+//    @ApiOperation("提交订单")
+//    @PostMapping("commit")
+//    public Result commitOrder(@LoginUser SysUser user,
+//                              @RequestBody @Validated SubmitOrderGoodsCommand goodsCommand,
+//                              @RequestBody @Validated SubmitOrderAddCommand addCommand) {
+//        return orderService.submit(user.getId(), goodsCommand, addCommand);
+//    }
+
     @ApiOperation("提交订单")
     @PostMapping("commit")
     public Result commitOrder(@LoginUser SysUser user,
-                              @RequestBody @Validated SubmitOrderGoodsCommand goodsCommand,
-                              @RequestBody @Validated SubmitOrderAddCommand addCommand) {
-        return orderService.submit(user.getId(), goodsCommand, addCommand);
+                              @RequestBody @Validated SubmitOrderCommand command) {
+        return orderService.submit(user.getId(), command);
     }
 
     @ApiOperation("取消订单")
@@ -61,6 +65,13 @@ public class OrderController {
                                   @ApiParam("当前页") @PathVariable Integer page,
                                   @ApiParam("分页大小") @PathVariable Integer size) {
         return orderService.listSellerAll(user.getId(), page, size);
+    }
+
+    @ApiOperation("获取订单信息")
+    @GetMapping("detail/{orderNo}")
+    public Result getOrderDetail(@LoginUser SysUser user,
+                                 @ApiParam("订单号") @PathVariable Long orderNo) {
+        return orderService.getDetail(user.getId(),orderNo);
     }
 
 }
